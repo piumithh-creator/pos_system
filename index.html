@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HSK Super — Point of Sale</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- ═══════════════════════════════ LOGIN PAGE ═══════════════════════════════ -->
+<div id="login-page">
+  <div class="login-card">
+    <div class="login-logo"><span>🛒</span></div>
+    <h1 class="login-title">HSK Super</h1>
+    <p class="login-subtitle">Point of Sale System · Sign in to continue</p>
+
+    <form id="login-form" novalidate>
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input type="text" class="form-control" id="login-username" placeholder="Enter username" autocomplete="username" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control" id="login-password" placeholder="Enter password" autocomplete="current-password" required>
+      </div>
+      <p id="login-error" class="text-danger mb-3" style="font-size:13px;min-height:18px"></p>
+      <button type="submit" class="btn-primary-custom w-100 justify-content-center" style="padding:11px">
+        🔐 Sign In
+      </button>
+    </form>
+
+    <div class="mt-4 p-3 rounded" style="background:#f8fafc;border:1px solid #e2e8f0;font-size:12px;color:#64748b">
+      <strong>Demo Credentials:</strong><br>
+      Admin: <code>admin</code> / <code>admin123</code><br>
+      Cashier: <code>cashier1</code> / <code>cash123</code>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ MAIN APP ════════════════════════════════ -->
+<div id="app" class="app-wrapper">
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay"></div>
+
+  <!-- ─── Sidebar ─── -->
+  <nav class="sidebar">
+    <div class="sidebar-brand d-flex align-items-center gap-3">
+      <div class="sidebar-logo">🛒</div>
+      <div class="sidebar-brand-text">
+        <div class="sidebar-brand-name">HSK Super</div>
+        <div class="sidebar-brand-sub">POS System</div>
+      </div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label">Main Menu</div>
+      <ul class="list-unstyled">
+        <li class="nav-item">
+          <button class="nav-link active" data-page="dashboard">
+            <span class="nav-icon">📊</span> Dashboard
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-page="orders">
+            <span class="nav-icon">🛒</span> New Order
+          </button>
+        </li>
+      </ul>
+
+      <div class="sidebar-section-label">Management</div>
+      <ul class="list-unstyled">
+        <li class="nav-item">
+          <button class="nav-link" data-page="customers">
+            <span class="nav-icon">🧑‍🤝‍🧑</span> Customers
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-page="items">
+            <span class="nav-icon">📦</span> Items
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-page="order-history">
+            <span class="nav-icon">📋</span> Order History
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-page="users">
+            <span class="nav-icon">👥</span> Users
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-info-bar">
+        <div class="user-avatar" id="sidebar-user-avatar">A</div>
+        <div>
+          <div class="user-info-name" id="sidebar-user-name">admin</div>
+          <div class="user-info-role" id="sidebar-user-role">admin</div>
+        </div>
+      </div>
+      <button class="btn-logout" id="btn-logout">🚪 Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- ─── Main Content ─── -->
+  <div class="main-content">
+
+    <!-- Top Header -->
+    <header class="top-header">
+      <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+      <div>
+        <div class="page-title" id="page-title">📊 Dashboard</div>
+      </div>
+      <div class="header-actions ms-auto">
+        <div class="header-time" id="live-clock"></div>
+      </div>
+    </header>
+
+    <!-- Page Wrapper -->
+    <div style="flex:1">
+
+      <!-- ══════════════════ DASHBOARD ══════════════════ -->
+      <div id="page-dashboard" class="page-content">
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-lg-3">
+            <div class="stat-card blue">
+              <div class="stat-icon blue">🧑‍🤝‍🧑</div>
+              <div class="stat-value" id="stat-customers">0</div>
+              <div class="stat-label">Customers</div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="stat-card green">
+              <div class="stat-icon green">📦</div>
+              <div class="stat-value" id="stat-items">0</div>
+              <div class="stat-label">Items</div>
+              <div class="stat-sub"><span id="stat-low-stock" class="text-danger fw-bold">0</span> low stock</div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="stat-card orange">
+              <div class="stat-icon orange">🛒</div>
+              <div class="stat-value" id="stat-orders">0</div>
+              <div class="stat-label">Total Orders</div>
+              <div class="stat-sub" id="stat-today-orders">0 today</div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="stat-card purple">
+              <div class="stat-icon purple">💰</div>
+              <div class="stat-value" style="font-size:18px" id="stat-revenue">LKR 0.00</div>
+              <div class="stat-label">Today's Revenue</div>
+              <div class="stat-sub" id="stat-total-revenue">LKR 0.00 total</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-lg-7">
+            <div class="content-card">
+              <div class="card-header-custom">
+                <h5>🕐 Recent Orders</h5>
+                <button class="btn-primary-custom" style="padding:6px 14px;font-size:12px" onclick="navigateTo('order-history')">View All</button>
+              </div>
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Items</th><th>Total</th></tr></thead>
+                  <tbody id="dashboard-recent-orders"><tr><td colspan="5" class="table-empty">Loading...</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <div class="content-card">
+              <div class="card-header-custom">
+                <h5>⚠️ Low Stock Alert</h5>
+              </div>
+              <div class="card-body-custom" id="dashboard-low-stock">Loading...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ USERS ══════════════════ -->
+      <div id="page-users" class="page-content" style="display:none">
+        <div class="content-card">
+          <div class="card-header-custom">
+            <h5>👥 Users <span class="text-secondary fw-normal ms-1" style="font-size:13px">(<span id="user-count">0</span>)</span></h5>
+            <div class="search-bar me-2">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="form-control" id="user-search" placeholder="Search users...">
+            </div>
+            <button class="btn-primary-custom" id="btn-add-user">➕ Add User</button>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead><tr><th></th><th>Username</th><th>Email</th><th>Role</th><th>Created</th><th>Actions</th></tr></thead>
+              <tbody id="users-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ CUSTOMERS ══════════════════ -->
+      <div id="page-customers" class="page-content" style="display:none">
+        <div class="content-card">
+          <div class="card-header-custom">
+            <h5>🧑‍🤝‍🧑 Customers <span class="text-secondary fw-normal ms-1" style="font-size:13px">(<span id="customer-count">0</span>)</span></h5>
+            <div class="search-bar me-2">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="form-control" id="customer-search" placeholder="Search customers...">
+            </div>
+            <button class="btn-primary-custom" id="btn-add-customer">➕ Add Customer</button>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead><tr><th>ID</th><th>Name</th><th>Contact</th><th>Address</th><th>Email</th><th>Actions</th></tr></thead>
+              <tbody id="customers-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ ITEMS ══════════════════ -->
+      <div id="page-items" class="page-content" style="display:none">
+        <div class="content-card">
+          <div class="card-header-custom">
+            <h5>📦 Items <span class="text-secondary fw-normal ms-1" style="font-size:13px">(<span id="item-count">0</span>)</span></h5>
+            <div class="search-bar me-2">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="form-control" id="item-search" placeholder="Search items...">
+            </div>
+            <button class="btn-primary-custom" id="btn-add-item">➕ Add Item</button>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead><tr><th>Code</th><th>Item Name</th><th>Category</th><th>Unit Price</th><th>Stock</th><th>Added</th><th>Actions</th></tr></thead>
+              <tbody id="items-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ ORDERS ══════════════════ -->
+      <div id="page-orders" class="page-content" style="display:none">
+        <div class="row g-3">
+          <!-- Left: Order Form -->
+          <div class="col-lg-7">
+            <!-- Customer Selection -->
+            <div class="content-card mb-3">
+              <div class="card-header-custom"><h5>👤 Customer</h5></div>
+              <div class="card-body-custom">
+                <select class="form-select" id="order-customer">
+                  <option value="">-- Select Customer --</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Item Search -->
+            <div class="content-card">
+              <div class="card-header-custom"><h5>📦 Add Items</h5></div>
+              <div class="card-body-custom">
+                <div class="row g-2 mb-2">
+                  <div class="col-md-6">
+                    <label class="form-label">Select Item</label>
+                    <select class="form-select" id="order-item-select">
+                      <option value="">-- Select Item --</option>
+                    </select>
+                  </div>
+                  <div class="col-4 col-md-3">
+                    <label class="form-label">Item Code</label>
+                    <input type="text" class="form-control" id="order-item-code" placeholder="e.g. ITM001">
+                  </div>
+                  <div class="col-4 col-md-2">
+                    <label class="form-label">Qty</label>
+                    <input type="number" class="form-control" id="order-item-qty" value="1" min="1">
+                  </div>
+                  <div class="col-4 col-md-1 d-flex align-items-end">
+                    <button class="btn-primary-custom w-100 justify-content-center" id="btn-add-to-cart" style="padding:9px 6px">➕</button>
+                  </div>
+                </div>
+                <p id="order-item-info" class="text-secondary" style="font-size:12px;margin:0;min-height:18px"></p>
+
+                <!-- Discount -->
+                <div class="mt-3 d-flex align-items-center gap-3">
+                  <label class="form-label mb-0">💸 Discount (LKR):</label>
+                  <input type="number" class="form-control" id="order-discount" value="0" min="0" style="max-width:130px">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Cart -->
+          <div class="col-lg-5">
+            <div class="cart-section">
+              <div class="cart-header">🛒 Order Cart</div>
+              <div class="cart-body" id="cart-items">
+                <div class="cart-empty">🛒<br>Cart is empty<br><small>Add items to begin</small></div>
+              </div>
+              <div class="cart-footer">
+                <div class="total-row">
+                  <span class="text-secondary">Subtotal</span>
+                  <span id="cart-subtotal">LKR 0.00</span>
+                </div>
+                <div class="total-row">
+                  <span class="text-secondary">Discount</span>
+                  <span id="cart-discount-display" class="text-danger">- LKR 0.00</span>
+                </div>
+                <div class="total-row grand">
+                  <span>Total</span>
+                  <span id="cart-total">LKR 0.00</span>
+                </div>
+                <button class="btn-place-order" id="btn-place-order">✅ Place Order</button>
+                <button class="w-100 mt-2 btn btn-outline-secondary btn-sm" id="btn-clear-cart">🗑️ Clear Cart</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════ ORDER HISTORY ══════════════════ -->
+      <div id="page-order-history" class="page-content" style="display:none">
+        <div class="content-card">
+          <div class="card-header-custom flex-wrap gap-2">
+            <h5>📋 Order History <span class="text-secondary fw-normal ms-1" style="font-size:13px">(<span id="history-count">0</span>)</span></h5>
+            <div class="d-flex align-items-center gap-2 ms-auto flex-wrap">
+              <div class="search-bar">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="form-control" id="history-search-id" placeholder="Search Order ID...">
+              </div>
+              <input type="date" class="form-control" id="history-search-date" style="max-width:170px">
+              <button class="btn btn-outline-secondary btn-sm" id="btn-clear-history-filter">✕ Clear</button>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Subtotal</th><th>Discount</th><th>Total</th><th>Date</th><th>Actions</th></tr></thead>
+              <tbody id="history-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end page wrapper -->
+  </div><!-- end main-content -->
+</div><!-- end app -->
+
+
+<!-- ═══════════════════════════════ MODALS ═══════════════════════════════ -->
+
+<!-- User Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="userModalLabel">Add User</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p id="user-modal-error" class="text-danger" style="font-size:13px;min-height:16px"></p>
+        <form id="user-form" novalidate>
+          <div class="mb-3">
+            <label class="form-label">Username *</label>
+            <input type="text" class="form-control" id="user-username" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password * <small class="text-secondary" id="user-password-hint"></small></label>
+            <input type="password" class="form-control" id="user-password">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Role *</label>
+            <select class="form-select" id="user-role" required>
+              <option value="cashier">Cashier</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email *</label>
+            <input type="email" class="form-control" id="user-email" required>
+          </div>
+          <div class="modal-footer px-0 pb-0">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn-primary-custom">💾 Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Customer Modal -->
+<div class="modal fade" id="customerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="customerModalLabel">Add Customer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p id="customer-modal-error" class="text-danger" style="font-size:13px;min-height:16px"></p>
+        <form id="customer-form" novalidate>
+          <div class="mb-3">
+            <label class="form-label">Full Name *</label>
+            <input type="text" class="form-control" id="customer-name" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Contact *</label>
+            <input type="text" class="form-control" id="customer-contact" placeholder="e.g. 0771234567" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Address *</label>
+            <textarea class="form-control" id="customer-address" rows="2" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" id="customer-email">
+          </div>
+          <div class="modal-footer px-0 pb-0">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn-primary-custom">💾 Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Item Modal -->
+<div class="modal fade" id="itemModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="itemModalLabel">Add Item</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p id="item-modal-error" class="text-danger" style="font-size:13px;min-height:16px"></p>
+        <form id="item-form" novalidate>
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label">Item Code *</label>
+              <input type="text" class="form-control" id="item-code" placeholder="e.g. ITM001" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Category</label>
+              <input type="text" class="form-control" id="item-category" placeholder="e.g. Dairy">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Item Name *</label>
+              <input type="text" class="form-control" id="item-name" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Unit Price (LKR) *</label>
+              <input type="number" class="form-control" id="item-price" step="0.01" min="0.01" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Stock Qty *</label>
+              <input type="number" class="form-control" id="item-qty" min="1" required>
+            </div>
+          </div>
+          <div class="modal-footer px-0 pb-0 mt-3">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn-primary-custom">💾 Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Order Detail Modal -->
+<div class="modal fade" id="orderDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">📄 Order Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3 mb-3">
+          <div class="col-sm-4">
+            <div class="p-3 rounded" style="background:var(--bg-body);border:1px solid var(--border)">
+              <div class="text-secondary" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px">Order ID</div>
+              <div class="fw-bold text-primary mt-1" id="detail-order-id"></div>
+            </div>
+          </div>
+          <div class="col-sm-4">
+            <div class="p-3 rounded" style="background:var(--bg-body);border:1px solid var(--border)">
+              <div class="text-secondary" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px">Customer</div>
+              <div class="fw-semibold mt-1" id="detail-customer"></div>
+            </div>
+          </div>
+          <div class="col-sm-4">
+            <div class="p-3 rounded" style="background:var(--bg-body);border:1px solid var(--border)">
+              <div class="text-secondary" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px">Date</div>
+              <div class="fw-semibold mt-1" id="detail-date"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="content-card mb-3">
+          <div class="card-header-custom"><h5>Items Ordered</h5></div>
+          <div class="card-body-custom p-0 px-3" id="detail-items-list"></div>
+        </div>
+
+        <div class="d-flex justify-content-end">
+          <div style="min-width:240px">
+            <div class="d-flex justify-content-between py-1 text-secondary" style="font-size:13px">
+              <span>Subtotal</span><span id="detail-subtotal"></span>
+            </div>
+            <div class="d-flex justify-content-between py-1 text-danger" style="font-size:13px">
+              <span>Discount</span><span id="detail-discount"></span>
+            </div>
+            <div class="d-flex justify-content-between py-2 fw-bold text-primary border-top mt-1" style="font-size:16px">
+              <span>Total</span><span id="detail-total"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn-primary-custom" id="detail-print-btn">🖨️ Print Receipt</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ─── Scripts ─── -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Models -->
+<script src="model/User.js"></script>
+<script src="model/Customer.js"></script>
+<script src="model/Item.js"></script>
+<script src="model/Order.js"></script>
+
+<!-- Utils -->
+<script src="utils/helpers.js"></script>
+
+<!-- DB -->
+<script src="db/database.js"></script>
+
+<!-- Controllers -->
+<script src="controller/UserController.js"></script>
+<script src="controller/CustomerController.js"></script>
+<script src="controller/ItemController.js"></script>
+<script src="controller/OrderController.js"></script>
+
+<!-- Page Scripts -->
+<script src="assets/js/dashboard.js"></script>
+<script src="assets/js/users.js"></script>
+<script src="assets/js/customers.js"></script>
+<script src="assets/js/items.js"></script>
+<script src="assets/js/orders.js"></script>
+<script src="assets/js/orderHistory.js"></script>
+
+<!-- App Entry -->
+<script src="assets/js/app.js"></script>
+</body>
+</html>
